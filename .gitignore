@@ -1,0 +1,10 @@
+out/
+runs/
+__pycache__/
+# Built by build.sh and the tools. The buildings in it are the game's own files: never commit them.
+item/
+item_vehicles/
+# Working notes.
+HANDOFF.md
+docs/content-plan.md
+docs/release-checklist.md

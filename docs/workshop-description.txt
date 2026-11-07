@@ -1,0 +1,69 @@
+[h1]WRSR Mail: a postal service for your republic[/h1]
+Buildings produce mail along with their waste. Mail trucks collect it, post offices process it, and trucks bring it to the homes. Mail in a house makes its residents happier. A covered house without mail makes them unhappy.
+
+This mod is about the mechanics. Its buildings are placeholders on models from the base game and the Early Start DLC. Everything is tagged [b][MAIL][/b]: search for that word in the menu. Modders are welcome to add real post offices, see the modding guide in the repository.
+
+[h2]What it adds[/h2]
+[list]
+[*] Two resources, unprocessed and processed mail.
+[*] A mail service that buys any covered truck and sends it on its own.
+[*] Mail warehouses and post offices of several sizes, manual and automated, all clean production.
+[*] Mail use that grows over the years, from letters in 1920 to parcels in 2020.
+[*] Trade: buy unprocessed mail abroad, process it, sell it back. Works by road, rail, air and sea. Prices follow the wage, so they keep up with inflation.
+[*] Trucks reach houses with only a pedestrian entrance, as garbage trucks do.
+[/list]
+
+[h2]How to start[/h2]
+[list]
+[*] Build a mail service, a post office, and a warehouse if you want one.
+[*] In the service window, set the post office or warehouse as the destination.
+[*] Buy covered trucks for the service.
+[/list]
+
+[h2]Please read before installing[/h2]
+[list]
+[*] [b]Start a new map.[/b] The resource count is part of the save: older saves do not load with this mod, and saves made with it do not load without it.
+[*] Needs a plugin loader. Tested under RepublicModLoader. Made for TesmioLoader API 4 as well, not tested there.
+[*] Targets [b]SOVIET64.exe 1.1.1.9[/b]. Every patch site is checked by its bytes first, and what does not match is skipped and written to the log. After a game update, wait for a new version of the mod: without its resources, the mail buildings can stop the game from loading.
+[*] Needs two free slots in the game's resource list. If other mods took them, the log says so, and the same applies: unsubscribe until that is sorted out.
+[/list]
+
+[h2]Credits and license[/h2]
+By TheRealMeowMeow00. GPL-3.0-only. Source: https://github.com/TheRealMeowMeow00/WRSR_Mail
+The way resources are added comes from TesmioLoader's resources plugin by MaxLegend, GPL-3.0.
+
+[hr][/hr]
+
+[h1]WRSR Mail: почта для вашей республики[/h1]
+Здания производят почту вместе с мусором. Грузовики её собирают, почтамты обрабатывают, а затем грузовики развозят её по домам. Почта в доме поднимает настроение жильцов. Дом в зоне службы без почты его снижает.
+
+Этот мод про механику. Его здания это заглушки на моделях игры и DLC Early Start. У всего есть метка [b][MAIL][/b]: найдите это слово в меню. Моддеры могут добавить настоящие почтамты, руководство есть в репозитории.
+
+[h2]Что добавляет[/h2]
+[list]
+[*] Два ресурса: необработанная и обработанная почта.
+[*] Почтовая служба: покупает любые крытые грузовики и сама их отправляет.
+[*] Склады и почтамты разных размеров, ручные и автоматические, без загрязнения.
+[*] Расход почты растёт с годами: от писем в 1920 до посылок в 2020.
+[*] Торговля: покупайте необработанную почту за границей, обрабатывайте и продавайте обратно. Работает по дороге, железной дороге, воздуху и морю. Цены идут за зарплатой, поэтому успевают за инфляцией.
+[*] Грузовики подъезжают к домам только с пешеходным подходом, как мусоровозы.
+[/list]
+
+[h2]С чего начать[/h2]
+[list]
+[*] Постройте почтовую службу, почтамт и, если нужен, склад.
+[*] В окне службы укажите почтамт или склад как пункт назначения.
+[*] Купите для службы крытые грузовики.
+[/list]
+
+[h2]Прочитайте перед установкой[/h2]
+[list]
+[*] [b]Начните новую карту.[/b] Число ресурсов записано в сохранении: старые сохранения с модом не загрузятся, а сохранения с модом не загрузятся без него.
+[*] Нужен загрузчик плагинов. Проверено под RepublicModLoader. Сделано и для TesmioLoader API 4, там не проверялось.
+[*] Для [b]SOVIET64.exe 1.1.1.9[/b]. Каждое место правки сначала сверяется по байтам, а что не совпало, пропускается и пишется в журнал. После обновления игры дождитесь новой версии мода: без его ресурсов почтовые здания могут помешать загрузке игры.
+[*] Нужны два свободных места в списке ресурсов игры. Если их заняли другие моды, журнал об этом скажет, и правило то же: отпишитесь, пока это не решено.
+[/list]
+
+[h2]Авторы и лицензия[/h2]
+Автор TheRealMeowMeow00. GPL-3.0-only. Исходный код: https://github.com/TheRealMeowMeow00/WRSR_Mail
+Способ добавления ресурсов взят из плагина resources в TesmioLoader, автор MaxLegend, GPL-3.0.
