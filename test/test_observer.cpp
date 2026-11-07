@@ -768,21 +768,30 @@ int main(int argc, char** argv)
         memset(&w, 0, sizeof(w));
         pos[0] = 10.0f;
         uint64_t t = 1000;
-        CHECK(!TruckStuck(w, truck, 3, 0.5f, t));                   // first sight
-        for (int i = 0; i < 89; ++i) { t += 1000; CHECK(!TruckStuck(w, truck, 3, 0.5f, t)); }
+        float clock = 0.0f;
+        CHECK(!TruckStuck(w, truck, 3, 0.5f, clock += 0.1f, t));                   // first sight
+        for (int i = 0; i < 89; ++i) { t += 1000; CHECK(!TruckStuck(w, truck, 3, 0.5f, clock += 0.1f, t)); }
         t += 1000;
-        CHECK(TruckStuck(w, truck, 3, 0.5f, t));                    // 90 s
+        CHECK(TruckStuck(w, truck, 3, 0.5f, clock += 0.1f, t));                    // 90 s
         // Moving, a new stop or a change of cargo start the count again.
-        pos[0] = 12.0f; t += 1000; CHECK(!TruckStuck(w, truck, 3, 0.5f, t));
+        pos[0] = 12.0f; t += 1000; CHECK(!TruckStuck(w, truck, 3, 0.5f, clock += 0.1f, t));
         CHECK(w.stillMs == 0);
-        t += 1000; CHECK(!TruckStuck(w, truck, 3, 0.5f, t)); CHECK(w.stillMs == 1000);
-        t += 1000; CHECK(!TruckStuck(w, truck, 4, 0.5f, t)); CHECK(w.stillMs == 0);
-        t += 1000; CHECK(!TruckStuck(w, truck, 4, 0.6f, t)); CHECK(w.stillMs == 0);
-        // A paused game does not tick: ten minutes between two ticks count for little.
-        t += 600000; CHECK(!TruckStuck(w, truck, 4, 0.6f, t)); CHECK(w.stillMs == 2000);
+        t += 1000; CHECK(!TruckStuck(w, truck, 3, 0.5f, clock += 0.1f, t)); CHECK(w.stillMs == 1000);
+        t += 1000; CHECK(!TruckStuck(w, truck, 4, 0.5f, clock += 0.1f, t)); CHECK(w.stillMs == 0);
+        t += 1000; CHECK(!TruckStuck(w, truck, 4, 0.6f, clock += 0.1f, t)); CHECK(w.stillMs == 0);
+        // A long gap between two ticks counts for little.
+        t += 600000; CHECK(!TruckStuck(w, truck, 4, 0.6f, clock += 0.1f, t)); CHECK(w.stillMs == 2000);
+        // A paused game ticks on, with its timer standing: none of that counts, however long.
+        {
+            uint64_t before = w.stillMs;
+            for (int i = 0; i < 300; ++i) { t += 1000; CHECK(!TruckStuck(w, truck, 4, 0.6f, clock, t)); }
+            CHECK(w.stillMs == before);
+            // Back in play, the pause adds no more than one long gap does.
+            t += 1000; CHECK(!TruckStuck(w, truck, 4, 0.6f, clock += 0.1f, t)); CHECK(w.stillMs == before + 2000);
+        }
         // Turned off, or no way to read the position.
-        g_stuckMs = 0; t += 200000; CHECK(!TruckStuck(w, truck, 4, 0.6f, t));
-        g_stuckMs = 90000; g_nodePosition = NULL; CHECK(!TruckStuck(w, truck, 4, 0.6f, t));
+        g_stuckMs = 0; t += 200000; CHECK(!TruckStuck(w, truck, 4, 0.6f, clock += 0.1f, t));
+        g_stuckMs = 90000; g_nodePosition = NULL; CHECK(!TruckStuck(w, truck, 4, 0.6f, clock += 0.1f, t));
     }
 
     // 6t. A house's mail storages follow its size; only a house, only its own.

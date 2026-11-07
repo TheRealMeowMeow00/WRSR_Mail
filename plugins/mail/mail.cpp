@@ -1296,6 +1296,7 @@ struct Watch
     float    stillCargo;
     float    stillPos[3];
     uint64_t lastTick, stillMs;
+    float lastDayTimer;
 };
 static Watch g_watch[32];
 
@@ -1338,22 +1339,30 @@ static void LogCargoJump(const BYTE* v, int slot, float cargo, const BYTE* build
 // Why it happens is not known yet: the line below logs what is needed to find out.
 //
 // A truck counts as stuck when for mail_stuck_seconds of running game it did not move, did not
-// change its stop and did not change its cargo. Only ticks count, so a paused game adds nothing.
+// change its stop and did not change its cargo. The office ticks on a paused game too (seen
+// 2026-11-08: trucks recalled 90 s into a pause), so only time in which the game's day timer
+// moved counts. The game adds to that timer from its simulation clock and clears it each day.
 typedef float* (*NodePositionFn)(void* node, float* out);       // C3D_NODE::GetPosition, by value
 static NodePositionFn g_nodePosition;
 static const size_t kVehNode = 0xD60;
+static const size_t kGameDayTimer = 0x59C;
 static uint64_t g_stuckMs = 90000;
 
-static bool TruckStuck(Watch& w, BYTE* v, int here, float cargo, uint64_t now)
+static bool TruckStuck(Watch& w, BYTE* v, int here, float cargo, float dayTimer, uint64_t now)
 {
     if (!g_nodePosition || !g_stuckMs) return false;
     float p[3];
     g_nodePosition(v + kVehNode, p);
     float dx = p[0] - w.stillPos[0], dy = p[1] - w.stillPos[1], dz = p[2] - w.stillPos[2];
     float dc = cargo - w.stillCargo;
-    uint64_t step = w.lastTick && now > w.lastTick ? now - w.lastTick : 0;
-    w.lastTick = now;
-    if (step > 2000) step = 2000;
+    uint64_t step = 0;
+    if (dayTimer != w.lastDayTimer)
+    {
+        step = w.lastTick && now > w.lastTick ? now - w.lastTick : 0;
+        w.lastTick = now;
+        w.lastDayTimer = dayTimer;
+        if (step > 2000) step = 2000;
+    }
     if (!w.seen || here != w.stillStop || dc < -0.0005f || dc > 0.0005f || dx * dx + dy * dy + dz * dz > 0.25f)
     {
         w.seen = true;
@@ -1433,7 +1442,7 @@ static void WatchTrucks(const BYTE* office)
             Logf("mail  watch: truck %p still busy %.0f s, stop %d/%d, cargo %.3f t",
                  w.truck, (now - w.issued) / 1000.0, Rd<int>(v, kVehStopIndex), w.n, (double)cargo);
         }
-        if (g_sendHome && g_gameNow && TruckStuck(w, v, here, cargo, now))
+        if (g_sendHome && g_gameNow && TruckStuck(w, v, here, cargo, Rd<float>(g_gameNow, kGameDayTimer), now))
         {
             const BYTE* at = here >= 0 && here < w.n ? w.stop[here].building : NULL;
             Logf("mail  stuck: truck %p, stop %d/%d of a route of %d, building %p type %d, cargo %.3f t, %.0f s on the way; "
