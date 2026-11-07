@@ -13,12 +13,22 @@ This mod is about the mechanics. Its buildings are placeholders on models from t
 [*] Trucks reach houses with only a pedestrian entrance, as garbage trucks do.
 [/list]
 
-[h2]How to start[/h2]
-[list]
-[*] Build a mail service, a post office, and a warehouse if you want one.
-[*] In the service window, set the post office or warehouse as the destination.
-[*] Buy covered trucks for the service.
-[/list]
+[h2]How to play[/h2]
+[olist]
+[*] Enable WRSR Mail in RepublicModLoader and start a [b]new map with waste management on[/b]. Mail is made together with waste: with waste off, no mail appears and nobody minds.
+[*] Search [b][MAIL][/b] in the Workshop buildings menu.
+[*] Build a [b]Mail service[/b] near the houses. Like a technical service, it serves the buildings in its range and needs fuel.
+[*] Build a [b]Main post office[/b]: it needs workers and electricity. Sizes go from 40 to 320 workers, plus automated sorting centres. Early versions exist for early starts.
+[*] Open the mail service window. In the utilities section it has two rows: [b]Raw mail[/b], where collected mail goes, and [b]Processed mail[/b], where trucks take mail for the homes. Set both to the post office.
+[*] Buy covered trucks in the service window. Any covered road truck works, one truck does both jobs in turns.
+[/olist]
+Trucks then collect mail from buildings, the post office processes it, and trucks bring it to the homes, up to 12 stops a trip. A truck that stands still for 90 s of unpaused play is sent back to its base.
+
+[b]Warehouse, optional.[/b] A Mail warehouse holds much more and loads 5 times faster. Set the service rows to it and move mail between it and the post office with your own line. Its stock slowly ages, a post office's does not.
+
+[b]Trade.[/b] Buy raw mail at a customs house, process it, sell the processed mail back. Road, rail, air and sea all work. The margin is about the wages of the processing.
+
+[b]Problems?[/b] Lines of this mod in rml/logs/rml-runtime.log in the RepublicModLoader folder start with the word mail. Post them with your report.
 
 [h2]Please read before installing[/h2]
 [list]
@@ -49,12 +59,22 @@ The way resources are added comes from TesmioLoader's resources plugin by MaxLeg
 [*] Грузовики подъезжают к домам только с пешеходным подходом, как мусоровозы.
 [/list]
 
-[h2]С чего начать[/h2]
-[list]
-[*] Постройте почтовую службу, почтамт и, если нужен, склад.
-[*] В окне службы укажите почтамт или склад как пункт назначения.
-[*] Купите для службы крытые грузовики.
-[/list]
+[h2]Как играть[/h2]
+[olist]
+[*] Включите WRSR Mail в RepublicModLoader и начните [b]новую карту с включённым мусором[/b]. Почта появляется вместе с мусором: без него почты нет, и жители не огорчаются.
+[*] Найдите здания поиском [b][MAIL][/b] в меню зданий мастерской.
+[*] Постройте почтовую службу ([b]Mail service[/b]) рядом с домами. Как техслужба, она обслуживает здания в своём радиусе и нуждается в топливе.
+[*] Постройте почтамт ([b]Main post office[/b]): ему нужны рабочие и электричество. Размеры от 40 до 320 рабочих, есть и автоматические сортировочные центры. Для раннего старта есть ранние версии.
+[*] Откройте окно почтовой службы. В разделе коммунального хозяйства две строки: [b]сырая почта[/b], куда везут собранное, и [b]готовая почта[/b], откуда берут почту для домов. Укажите в обеих почтамт.
+[*] Купите крытые грузовики в окне службы. Подходит любой крытый дорожный грузовик, одна машина по очереди делает обе работы.
+[/olist]
+Дальше грузовики собирают почту по зданиям, почтамт её обрабатывает, а грузовики развозят по домам, до 12 остановок за рейс. Машину, которая простояла 90 секунд без паузы, мод отправляет на базу.
+
+[b]Склад, по желанию.[/b] Почтовый склад ([b]Mail warehouse[/b]) вмещает гораздо больше и грузит в 5 раз быстрее. Укажите его в строках службы и возите почту между ним и почтамтом своей линией. Запас на складе понемногу стареет, на почтамте нет.
+
+[b]Торговля.[/b] Покупайте сырую почту на таможне, обрабатывайте и продавайте готовую обратно. Работают дорога, железная дорога, воздух и море. Наценка примерно равна зарплате за обработку.
+
+[b]Что-то не так?[/b] Строки мода в rml/logs/rml-runtime.log в папке RepublicModLoader начинаются со слова mail. Приложите их к сообщению.
 
 [h2]Прочитайте перед установкой[/h2]
 [list]

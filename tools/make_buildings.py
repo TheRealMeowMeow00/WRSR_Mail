@@ -343,11 +343,12 @@ def main(game):
     build_early(media)
 
     objs = "".join("$OBJECT_BUILDING {}\n".format(o) for o in list(BUILDINGS) + list(EARLY))
-    # 9000000001 is the local test folder. tools/make_release.sh writes the real id.
+    # 9000000001 is the local test folder. tools/make_release.sh writes the real id,
+    # 3835656082. Visibility and tags are what the game's upload window wrote for that item.
     with open(os.path.join(ITEM, "workshopconfig.ini"), "w", encoding="utf-8", newline="\n") as f:
         f.write('$ITEM_ID 9000000001\n\n$OWNER_ID 76561198005448678\n\n'
-                '$ITEM_TYPE WORKSHOP_ITEMTYPE_BUILDING\n\n$VISIBILITY 2\n\n'
-                '$TAGS 5\n\n' + objs + '\n$ITEM_NAME "WRSR Mail"\n\n'
+                '$ITEM_TYPE WORKSHOP_ITEMTYPE_BUILDING\n\n$VISIBILITY 0\n\n'
+                '$TAGS 3\n$TAGS 5\n$TAGS 7\n\n' + objs + '\n$ITEM_NAME "WRSR Mail"\n\n'
                 '$ITEM_DESC "' + item_description() + '"\n\n$END\n')
 
 
