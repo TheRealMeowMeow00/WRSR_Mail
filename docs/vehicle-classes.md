@@ -100,6 +100,48 @@ them". That needs no number in the game:
 
 It gives no separate column in the game's tables and no new cargo look by itself.
 
+## What another mod does: Frontline
+
+Frontline by SAYONE (Steam Workshop 3835680832) has tanks, APCs, artillery and aircraft as
+separate "classes" with their own headquarters buildings. Read in its data files and installer
+scripts, 0.3.1; its code is closed and none of it is used here.
+
+- **It adds no class to the game.** `class = ...` in its `units.ini` is the mod's own catalogue.
+  The vehicles are ordinary game vehicles and the mod decides what each one is from its own list:
+  the virtual class above, at the scale of a whole mod.
+- Its vehicles are copies of Workshop vehicles written into `media_soviet/vehicles/` by an
+  installer. A comment in the installer gives the reason: copies placed in `workshop_wip` "were
+  never offered for sale". I have not checked this, and WRSR Mail's own trucks did sell from a
+  Workshop item, so it may depend on how the item is declared.
+- The same comments say a plane bought from `media_soviet/vehicles/` crashed the game in
+  `C3D_MESH::GetNodeHeader`, and that planes belong in `media_soviet/airplanes/` and helicopters
+  in `media_soviet/helicopters/`. Also not checked here.
+
+So the one large mod that has "its own vehicle types" got them without touching the class number.
+
+## If WRSR Mail gets its own vehicles
+
+Nothing here is built. This is the list of what is known and what would have to be read first.
+
+Known, and enough for a mail truck that only the mail service buys and uses:
+
+- The purchase check `FUN_1403E2900` is already hooked (`VehicleFitsDetour`). `mail_vehicles`
+  limits a mail service to listed vehicles; the reverse rule, keeping mail vehicles out of other
+  depots, is the same hook with the test turned round.
+- The dispatcher already works per office and per vehicle, so rules by vehicle name need no game
+  change.
+- A vehicle made for mail still has to be class 0 (COVERED), or planes, wagons, ships and customs
+  stop carrying its cargo. See "Reusing a slot" for what any other number costs.
+
+Not known, to read before promising more:
+
+- **Where the purchase list is drawn**, and whether it can show a heading or a filter for mail
+  vehicles. The build menu tabs (`build-menu.md`) are a different list: buildings and tools only.
+- **Whether the vehicle window can show a mail label** in place of the covered cargo class.
+- **Whether `$RESOURCE_ALLOW_ONLY mail_raw mail_done`** on a vehicle is enough to keep other
+  cargo off it everywhere. It resolved correctly at load, see `HANDOFF.md`; its effect on lines
+  and distribution offices was not tried.
+
 ## Related: what lets a vehicle reach a building with no road
 
 `FUN_14067E8F0`, the road search. Two things set it apart, and this is not one of the `$SKILL_` tokens

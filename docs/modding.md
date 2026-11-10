@@ -157,6 +157,21 @@ RESOURCE_TRANSPORT_PASSANGER` or `$STORAGE_LIVING_AUTO`. [game]
 
 A truck reaches a house with only a pedestrian entrance, the way a garbage truck does. [game]
 
+### The "Mail" tab of the build menu
+
+The plugin adds a tab "Mail" to the bottom build menu, after the industry tabs, with the mod's
+own buildings in it [game]. The section for other mods is [untested]. Your buildings can be listed there too, in a section "Other mail
+buildings". The player adds them to `mail.ini`:
+
+```
+mail_tab_extra = 1234567890/MyPostOffice 1234567890/MyMailDepot
+```
+
+Each entry is `<your Workshop item id>/<building folder>`, the folder being the one named in your
+`$OBJECT_BUILDING` line. A name the game does not know is skipped, so a player who is not
+subscribed to your item loses nothing. Put the line for your item on your Workshop page so that
+players can copy it. How the tab works is in `build-menu.md`.
+
 ## Vehicles
 
 **There is no mail vehicle class, and there does not need to be.** A mail service buys any covered

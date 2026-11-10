@@ -101,9 +101,29 @@ def mail_done():
     return shadow(im)
 
 
+def bottomtab_mail():
+    """The build menu tab: 96x96 like the game's editor/bottomtab_*.png, a paper card with
+    the sealed envelope on it."""
+    im = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle(p(4, 4, 44, 44), radius=int(2.5 * S), fill=(246, 232, 198, 255),
+                        outline=(176, 150, 108, 255), width=int(0.9 * S))
+    d.rounded_rectangle(p(6, 6, 42, 42), radius=int(1.5 * S), outline=(226, 206, 166, 255), width=int(0.6 * S))
+    env = mail_done()
+    k = 0.74
+    env = env.resize((int(SIZE * k), int(SIZE * k)), Image.LANCZOS)
+    im.alpha_composite(env, ((SIZE - env.width) // 2, (SIZE - env.height) // 2))
+    out = os.path.join(HERE, "..", "item", "vfs", "media_soviet", "editor")
+    os.makedirs(out, exist_ok=True)
+    small = im.resize((96, 96), Image.LANCZOS)
+    small.save(os.path.join(out, "bottomtab_mail.png"))
+    return small
+
+
 if __name__ == "__main__":
     a = finish(mail_raw(), "mail_raw")
     b = finish(mail_done(), "mail_done")
+    t = bottomtab_mail()
 
     # A contact sheet for review: true size and x6, on light and dark.
     sheet = Image.new("RGBA", (660, 300), (120, 120, 120, 255))
@@ -114,5 +134,7 @@ if __name__ == "__main__":
         sheet.alpha_composite(b, (ox + 12, 72))
         sheet.alpha_composite(a.resize((144, 144), Image.NEAREST), (ox + 72, 12))
         sheet.alpha_composite(b.resize((144, 144), Image.NEAREST), (ox + 72, 156))
+    sheet.alpha_composite(t, (230, 12))
+    sheet.alpha_composite(t, (560, 12))
     sheet.save(os.path.join(HERE, "..", "out", "icons_preview.png"))
     print("ok", a.size, a.mode, b.size, b.mode)

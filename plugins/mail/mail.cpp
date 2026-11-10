@@ -2678,6 +2678,16 @@ static const wchar_t* g_needFormat = L"Current needs (mail: %d g, %d%%):";
 static bool g_captionFromIni[2];
 static bool g_languageKnown;
 
+// The texts of the build menu tab: its name, then the headings of its sections.
+static const int kTabTextBase = kMailTextBase + 10;
+struct TabText { int id; wchar_t text[48]; const wchar_t* russian; };
+static TabText g_tabText[] = {
+    { kTabTextBase + 0, L"Mail",                 L"Почта" },
+    { kTabTextBase + 1, L"Service and storage",  L"Служба и склады" },
+    { kTabTextBase + 2, L"Sorting",              L"Сортировка" },
+    { kTabTextBase + 3, L"Other mail buildings", L"Другие почтовые здания" },
+};
+
 static bool HasCyrillic(const wchar_t* t)
 {
     for (; t && *t; ++t)
@@ -2693,6 +2703,7 @@ static void UseRussian()
     g_needFormat = L"Текущие потребности (почта: %d г, %d%%):";
     if (!g_captionFromIni[0]) wcscpy(g_mailRes[0].caption, L"Необработанная почта");
     if (!g_captionFromIni[1]) wcscpy(g_mailRes[1].caption, L"Обработанная почта");
+    for (auto& t : g_tabText) wcscpy(t.text, t.russian);
 }
 
 static const wchar_t* MailNeedHeading(const BYTE* person)
@@ -2728,6 +2739,8 @@ static wchar_t* GetStringDetour(void* self, int id)
     }
     for (auto& r : g_mailRes)
         if (id == r.textId) return r.caption;
+    for (auto& t : g_tabText)
+        if (id == t.id) return t.text;
     return g_origGetString(self, id);
 }
 
@@ -3089,6 +3102,367 @@ static void InstallResourceIcons(void)
     }
 }
 
+// ---- the build menu tab ------------------------------------------------------------
+//
+// The bottom build menu is a vector of tab records that one game function, FUN_140051E30,
+// clears and fills at start-up: 26 tabs, each made by the same few calls. This hook lets it
+// finish and then adds one more tab the same way, with the game's own functions, so the
+// memory is the game's and the record is whatever the game makes of it. Nothing is written
+// into the game's code but the hook itself.
+//
+// What the menu code expects of a tab, read in FUN_14007C400 (drawing) and FUN_140444210
+// (gamepad):
+//  - tabs are drawn in one row in vector order, and the five group frames behind them are
+//    at fixed places for the game's 24 tabs. A tab put in the middle would push the later
+//    ones out of their frames, so ours goes after the last industry tab. It has no frame.
+//  - outside the editor the last tab of the vector is not drawn, so ours is never the last.
+//  - an open tab reads its first section heading and section end without a check: a tab
+//    needs at least one section and one item.
+//  - the icon is editor/bottomtab_<name>.png, loaded when the tab is made.
+//
+// The idea of adding a tab this way was seen working in the Frontline mod by SAYONE
+// (Steam Workshop 3835680832). No code of it is used: this is written from the game's code.
+
+// The builder's prologue, through its stack probe. The frame size is kept in the signature:
+// without it other large functions match, and a build that changes it is one to look at again.
+static const short kSigMenuBuilder[] = {
+    0x40,0x55,                                  // push rbp
+    0x41,0x54, 0x41,0x55, 0x41,0x56, 0x41,0x57, // push r12, r13, r14, r15
+    0x48,0x8D,0xAC,0x24,0x30,0x99,0xFF,0xFF,    // lea  rbp, [rsp-66D0h]
+    0xB8,0xD0,0x67,0x00,0x00,                   // mov  eax, 67D0h
+    0xE8,-1,-1,-1,-1,                           // call __chkstk
+    0x48,0x2B,0xE0,                             // sub  rsp, rax
+    0x48,0xC7,0x85,-1,-1,-1,-1,0xFE,0xFF,0xFF,0xFF, // mov qword ptr [rbp+..], -2
+    0x48,0x89,0x9C,0x24,-1,-1,-1,-1,            // mov  [rsp+..], rbx
+    0x48,0x89,0xB4,0x24,-1,-1,-1,-1,            // mov  [rsp+..], rsi
+    0x48,0x89,0xBC,0x24,-1,-1,-1,-1,            // mov  [rsp+..], rdi
+    0x0F,0x29,0xB4,0x24,-1,-1,-1,-1,            // movaps [rsp+..], xmm6
+    0x0F,0x29,0xBC,0x24,-1,-1,-1,-1,            // movaps [rsp+..], xmm7
+    0x44,0x0F,0x29,0x84,0x24,-1,-1,-1,-1,       // movaps [rsp+..], xmm8
+};
+// Five pushes and the lea: 18 bytes, nothing rip-relative.
+static const size_t kStolenMenu = 18;
+
+// Where the builder makes its first tab and that tab's first item. Straight-line code, so
+// each call is at a fixed place; every one is checked before its target is believed.
+static const size_t kMenuVecLea     = 0x89;    // lea rcx, [tab vector]
+static const size_t kMenuTabSizeMov = 0x97;    // mov r8d, 0B0h: the size of a tab record
+static const size_t kMenuTabCtor    = 0xB0;
+static const size_t kMenuTabPush    = 0xC0;
+static const size_t kMenuTabDtor    = 0xCD;
+static const size_t kMenuVecSize    = 0x105;
+static const size_t kMenuVecAt      = 0x115;
+static const size_t kMenuTabInit    = 0x137;
+static const size_t kMenuItemCtor   = 0x16F;
+static const size_t kMenuItemPush   = 0x19A;
+static const size_t kMenuItemDtor   = 0x1A7;
+static const size_t kMenuGameLea    = 0x1B3;   // lea rcx, [game]
+static const size_t kMenuFindTool   = 0x1BA;
+static const size_t kMenuItemsSize  = 0x1E2;
+static const size_t kMenuItemsAt    = 0x20E;
+static const size_t kMenuItemTextMov = 0x219;  // mov r8d, 947h
+static const size_t kMenuItemInit   = 0x222;
+static const size_t kMenuScanEnd    = 0x6000;  // the first section is made well inside this
+
+static const size_t kTabSize     = 0xB0;
+static const size_t kTabItems    = 0x50;    // vector of items, 0x30 each
+static const size_t kTabHeadings = 0x68;    // vector<int>: the text of each section heading
+static const size_t kTabEnds     = 0x80;    // vector<int>: item count at the end of each section
+static const size_t kTabGroup    = 0x98;
+static const size_t kTabColor    = 0x9C;    // four floats
+static const size_t kItemSize    = 0x30;
+static const size_t kToolType    = 0x48;    // tool -> building type, NULL for a tool that is not a building
+static const int    kItemText    = 0x947;   // what the game gives every item
+static const int    kTabGroupOurs = 4;      // industry, the last group before the tools
+static const size_t kMaxTabs     = 200;
+
+typedef void   (*MenuBuildFn)(void* a, void* b, void* c, void* d);
+typedef size_t (*VecSizeFn)(void* vec);
+typedef BYTE*  (*VecAtFn)(void* vec, size_t index);
+typedef void*  (*RecCtorFn)(void* rec);
+typedef void   (*RecDtorFn)(void* rec);
+typedef void   (*RecPushFn)(void* vec, void* rec);
+typedef void   (*TabInitFn)(BYTE* tab, const char* name, int textId, int group, const float* color);
+typedef void   (*ItemInitFn)(BYTE* item, void* tool, int textId, int zero);
+typedef void*  (*FindToolFn)(void* game, const char* name);
+typedef void   (*IntPushFn)(void* vec, const int* value);
+
+static MenuBuildFn g_origMenuBuild;
+static void*       g_tabVec;
+static void*       g_toolGame;
+static VecSizeFn   g_tabCount;
+static VecAtFn     g_tabAt;
+static RecCtorFn   g_tabCtor;
+static RecDtorFn   g_tabDtor;
+static RecPushFn   g_tabPush;
+static TabInitFn   g_tabInit;
+static VecSizeFn   g_itemCount;
+static VecAtFn     g_itemAt;
+static RecCtorFn   g_itemCtor;
+static RecDtorFn   g_itemDtor;
+static RecPushFn   g_itemPush;
+static ItemInitFn  g_itemInit;
+static FindToolFn  g_findTool;
+static IntPushFn   g_intPush;
+
+static const char kTabName[] = "mail";   // the icon is editor/bottomtab_mail.png
+static char g_tabItemId[64];             // the folder of this Workshop item: tools are "<id>/<building>"
+static char g_tabExtra[512];             // mail_tab_extra: tools of other mods, "<id>/<building>"
+
+// The buildings of this mod, in menu order. One that is not installed is left out.
+struct TabEntry { int section; const char* folder; };
+static const TabEntry kTabEntries[] = {
+    { 0, "MailServiceEarly" },        { 0, "MailService" },
+    { 0, "MailWarehouseEarly" },      { 0, "MailWarehouse" },
+    { 1, "SortingOfficeEarly" },      { 1, "SortingOffice" },
+    { 1, "SortingOfficeMediumEarly" },{ 1, "SortingOfficeMedium" },
+    { 1, "SortingOfficeLargeEarly" }, { 1, "SortingOfficeLarge" },
+    { 1, "SortingOfficeHugeEarly" },  { 1, "SortingOfficeHuge" },
+    { 1, "SortingCentreAuto" },       { 1, "SortingCentreAutoLarge" },
+};
+static const int kTabSections = 3;       // the third is for mail_tab_extra
+static const int kMaxTabItems = 64;
+
+static BYTE* RelTarget(BYTE* at, const BYTE* opcode, size_t opcodeLen)
+{
+    if (memcmp(at, opcode, opcodeLen) != 0) return NULL;
+    int rel;
+    memcpy(&rel, at + opcodeLen, 4);
+    return at + opcodeLen + 4 + rel;
+}
+
+// Reads the builder's first tab and item for the functions and the two objects. False, and
+// nothing set, if any of it is not where this game version has it.
+static bool ResolveMenuTab(BYTE* site)
+{
+    static const BYTE kCall[]    = { 0xE8 };
+    static const BYTE kLeaRcx[]  = { 0x48, 0x8D, 0x0D };
+    static const BYTE kTabSizeMov[]  = { 0x41, 0xB8, 0xB0, 0x00, 0x00, 0x00 };
+    static const BYTE kItemTextMov[] = { 0x41, 0xB8, 0x47, 0x09, 0x00, 0x00 };
+    if (memcmp(site + kMenuTabSizeMov, kTabSizeMov, sizeof(kTabSizeMov)) != 0) return false;
+    if (memcmp(site + kMenuItemTextMov, kItemTextMov, sizeof(kItemTextMov)) != 0) return false;
+
+    BYTE* vec  = RelTarget(site + kMenuVecLea, kLeaRcx, sizeof(kLeaRcx));
+    BYTE* game = RelTarget(site + kMenuGameLea, kLeaRcx, sizeof(kLeaRcx));
+    const size_t calls[] = { kMenuVecSize, kMenuVecAt, kMenuTabCtor, kMenuTabDtor, kMenuTabPush,
+                             kMenuTabInit, kMenuItemsSize, kMenuItemsAt, kMenuItemCtor,
+                             kMenuItemDtor, kMenuItemPush, kMenuItemInit, kMenuFindTool };
+    BYTE* fn[sizeof(calls) / sizeof(calls[0])];
+    for (size_t i = 0; i < sizeof(calls) / sizeof(calls[0]); ++i)
+    {
+        fn[i] = RelTarget(site + calls[i], kCall, sizeof(kCall));
+        if (!fn[i] || fn[i] < g_textStart || fn[i] >= g_textStart + g_textSize) return false;
+    }
+    if (!vec || !game) return false;
+
+    // The push of a section heading and of a section end: lea rcx, [rax+68h] and
+    // lea rcx, [rax+80h], each followed by lea rdx, [rbp+..] and the call. Both have to
+    // call the same function.
+    static const BYTE kHead[] = { 0x48, 0x8D, 0x48, 0x68, 0x48, 0x8D, 0x95 };
+    static const BYTE kEnd[]  = { 0x48, 0x8D, 0x88, 0x80, 0x00, 0x00, 0x00, 0x48, 0x8D, 0x95 };
+    BYTE* pushHead = NULL;
+    BYTE* pushEnd  = NULL;
+    for (size_t off = kMenuItemInit; off < kMenuScanEnd && !(pushHead && pushEnd); ++off)
+    {
+        BYTE* p = site + off;
+        if (!pushHead && memcmp(p, kHead, sizeof(kHead)) == 0)
+            pushHead = RelTarget(p + sizeof(kHead) + 4, kCall, sizeof(kCall));
+        if (!pushEnd && memcmp(p, kEnd, sizeof(kEnd)) == 0)
+            pushEnd = RelTarget(p + sizeof(kEnd) + 4, kCall, sizeof(kCall));
+    }
+    if (!pushHead || pushHead != pushEnd) return false;
+
+    g_tabVec    = vec;
+    g_toolGame  = game;
+    g_tabCount  = (VecSizeFn)fn[0];
+    g_tabAt     = (VecAtFn)fn[1];
+    g_tabCtor   = (RecCtorFn)fn[2];
+    g_tabDtor   = (RecDtorFn)fn[3];
+    g_tabPush   = (RecPushFn)fn[4];
+    g_tabInit   = (TabInitFn)fn[5];
+    g_itemCount = (VecSizeFn)fn[6];
+    g_itemAt    = (VecAtFn)fn[7];
+    g_itemCtor  = (RecCtorFn)fn[8];
+    g_itemDtor  = (RecDtorFn)fn[9];
+    g_itemPush  = (RecPushFn)fn[10];
+    g_itemInit  = (ItemInitFn)fn[11];
+    g_findTool  = (FindToolFn)fn[12];
+    g_intPush   = (IntPushFn)pushHead;
+    return true;
+}
+
+// A building tool by name, or NULL: a tool that is not there, or one that is not a building.
+static void* MailTool(const char* name)
+{
+    BYTE* tool = (BYTE*)g_findTool(g_toolGame, name);
+    if (!tool || !*(void**)(tool + kToolType)) return NULL;
+    return tool;
+}
+
+// Adds the tab to the list the game has just built. Called after the builder, on its thread.
+static void AddMailTab(void)
+{
+    static bool said;
+    const size_t n = g_tabCount(g_tabVec);
+    if (n < 2 || n > kMaxTabs)
+    {
+        if (!said) Logf("mail  tab: the menu has %llu tabs, not adding ours", (unsigned long long)n);
+        said = true;
+        return;
+    }
+    for (size_t i = 0; i < n; ++i)
+        if (strcmp((const char*)g_tabAt(g_tabVec, i), kTabName) == 0) return;   // already there
+
+    void* tools[kMaxTabItems];
+    int   heads[kTabSections], ends[kTabSections];
+    int   count = 0, sections = 0, missing = 0;
+    for (int s = 0; s < kTabSections; ++s)
+    {
+        const int before = count;
+        for (const TabEntry& e : kTabEntries)
+        {
+            if (e.section != s || count >= kMaxTabItems) continue;
+            char name[160];
+            _snprintf_s(name, sizeof(name), _TRUNCATE, "%s/%s", g_tabItemId, e.folder);
+            void* tool = MailTool(name);
+            if (tool) tools[count++] = tool; else ++missing;
+        }
+        if (s == kTabSections - 1)
+        {
+            char list[sizeof(g_tabExtra)];
+            strncpy_s(list, sizeof(list), g_tabExtra, _TRUNCATE);
+            char* next = NULL;
+            for (char* name = strtok_s(list, " ,;\t", &next); name; name = strtok_s(NULL, " ,;\t", &next))
+            {
+                if (count >= kMaxTabItems) break;
+                void* tool = MailTool(name);
+                if (tool) tools[count++] = tool; else ++missing;
+            }
+        }
+        if (count > before)
+        {
+            heads[sections] = g_tabText[1 + s].id;
+            ends[sections]  = count;
+            ++sections;
+        }
+    }
+    if (count == 0)
+    {
+        if (!said) Logf("mail  tab: none of the mail buildings is a tool of the game (looked for %s/...), no tab",
+                        g_tabItemId);
+        said = true;
+        return;
+    }
+
+    // Before the first tab of a later group: the terrain tools, and the editor tab that is
+    // hidden in a normal game.
+    size_t pos = n - 1;
+    for (size_t i = 0; i < n; ++i)
+        if (*(int*)(g_tabAt(g_tabVec, i) + kTabGroup) > kTabGroupOurs) { pos = i; break; }
+
+    // The colour every tab of the game is made with: taken from the last one.
+    alignas(16) float color[4];
+    memcpy(color, g_tabAt(g_tabVec, n - 1) + kTabColor, sizeof(color));
+
+    alignas(16) BYTE blank[kTabSize];
+    memset(blank, 0, sizeof(blank));
+    g_tabPush(g_tabVec, g_tabCtor(blank));
+    g_tabDtor(blank);
+    if (g_tabCount(g_tabVec) != n + 1)
+    {
+        if (!said) Logf("mail  tab: the game did not take a new tab, none added");
+        said = true;
+        return;
+    }
+    BYTE* tab = g_tabAt(g_tabVec, n);
+    g_tabInit(tab, kTabName, g_tabText[0].id, kTabGroupOurs, color);
+    for (int i = 0; i < count; ++i)
+    {
+        alignas(16) BYTE item[kItemSize];
+        memset(item, 0, sizeof(item));
+        g_itemPush(tab + kTabItems, g_itemCtor(item));
+        g_itemDtor(item);
+        const size_t have = g_itemCount(tab + kTabItems);
+        if (have == 0) break;
+        g_itemInit(g_itemAt(tab + kTabItems, have - 1), tools[i], kItemText, 0);
+    }
+    for (int s = 0; s < sections; ++s)
+    {
+        g_intPush(tab + kTabHeadings, &heads[s]);
+        g_intPush(tab + kTabEnds, &ends[s]);
+    }
+
+    // Into place. A tab record holds nothing that points into itself, and the game has no
+    // pointer to a tab yet: its "open tab" was cleared by the builder.
+    if (pos < n)
+    {
+        alignas(16) BYTE moved[kTabSize];
+        BYTE* first = g_tabAt(g_tabVec, pos);
+        memcpy(moved, tab, kTabSize);
+        memmove(first + kTabSize, first, (n - pos) * kTabSize);
+        memcpy(first, moved, kTabSize);
+    }
+    Logf("mail  tab: added as tab %llu of %llu with %d buildings in %d sections%s",
+         (unsigned long long)pos + 1, (unsigned long long)n + 1, count, sections,
+         missing ? "; some buildings were not found" : "");
+}
+
+static void MenuBuildDetour(void* a, void* b, void* c, void* d)
+{
+    g_origMenuBuild(a, b, c, d);
+    AddMailTab();
+}
+
+// The game loads the icon by name from media_soviet\editor when the tab is made, so it has
+// to be there. Ours is copied once; without it the game's own "miscellaneous" icon is used.
+// False if there is no file at all: a tab without an icon is not made.
+static bool InstallTabIcon(void)
+{
+    char self[MAX_PATH], game[MAX_PATH], src[MAX_PATH], dst[MAX_PATH], spare[MAX_PATH];
+    HMODULE me = NULL;
+    GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                       (LPCSTR)&InstallTabIcon, &me);
+    if (!GetModuleFileNameA(me, self, sizeof(self)) || !GetModuleFileNameA(g_exe, game, sizeof(game))) return false;
+    char* s = strrchr(self, '\\'); if (s) *s = 0;          // ...\plugins
+    s = strrchr(self, '\\');       if (s) *s = 0;          // the item folder
+    s = strrchr(self, '\\');
+    strncpy_s(g_tabItemId, sizeof(g_tabItemId), s ? s + 1 : self, _TRUNCATE);
+    s = strrchr(game, '\\');       if (s) *s = 0;
+    _snprintf_s(src, sizeof(src), _TRUNCATE, "%s\\vfs\\media_soviet\\editor\\bottomtab_%s.png", self, kTabName);
+    _snprintf_s(dst, sizeof(dst), _TRUNCATE, "%s\\media_soviet\\editor\\bottomtab_%s.png", game, kTabName);
+    _snprintf_s(spare, sizeof(spare), _TRUNCATE, "%s\\media_soviet\\editor\\bottomtab_miscell.png", game);
+    if (GetFileAttributesA(dst) != INVALID_FILE_ATTRIBUTES) return true;
+    if (CopyFileA(src, dst, TRUE)) { Logf("mail  tab: icon installed"); return true; }
+    if (CopyFileA(spare, dst, TRUE)) { Logf("mail  tab: no icon in %s, using the game's", src); return true; }
+    return false;
+}
+
+static void InstallMenuTab(void)
+{
+    BYTE* site = ScanUnique(kSigMenuBuilder, (int)(sizeof(kSigMenuBuilder) / sizeof(kSigMenuBuilder[0])));
+    if (!site) { Logf("mail  tab: menu builder not located by signature, no tab"); return; }
+    if (!ResolveMenuTab(site))
+    {
+        Logf("mail  tab: the menu builder at rva 0x%llX is not laid out as expected, no tab",
+             (unsigned long long)(site - g_exeBase));
+        return;
+    }
+    if (!g_origGetString) { Logf("mail  tab: captions are not hooked, no tab"); return; }
+    if (!InstallTabIcon()) { Logf("mail  tab: no icon file could be put in media_soviet\\editor, no tab"); return; }
+
+    BYTE expect[kStolenMenu];
+    memcpy(expect, site, kStolenMenu);
+    void* tramp = NULL;
+    if (!InstallInlineHook(site, (void*)MenuBuildDetour, &tramp, expect, kStolenMenu, "mail/menu tab"))
+    {
+        Logf("mail  tab: hook refused, no tab");
+        return;
+    }
+    g_origMenuBuild = (MenuBuildFn)tramp;
+    Logf("mail  tab: menu builder hooked at rva 0x%llX, buildings are looked for as %s/<folder>",
+         (unsigned long long)(site - g_exeBase), g_tabItemId);
+}
+
 // ---- settings: the ini beside the DLL, so both loaders behave the same ---------
 
 static char g_ini[MAX_PATH];
@@ -3223,6 +3597,11 @@ extern "C" __declspec(dllexport) int TsmPluginInit(const TsmHost* host, TsmPlugi
         InstallPersonWindow();
         InstallRowCaptions();
         InstallWindowWarnings();
+        if (CfgInt("mail_tab", 1))
+        {
+            if (g_ini[0]) GetPrivateProfileStringA("mail", "mail_tab_extra", "", g_tabExtra, sizeof(g_tabExtra), g_ini);
+            InstallMenuTab();
+        }
     }
 
     if (CfgInt("dispatch", 0))

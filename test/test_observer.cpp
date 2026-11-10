@@ -9,6 +9,8 @@
 
 #include "../plugins/mail/mail.cpp"
 
+#include <array>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -96,6 +98,76 @@ static unsigned long long FakeFits(void*, BYTE*, BYTE*, char a, void* b)
 }
 
 static uint64_t TotalCalls() { uint64_t n = 0; for (auto& c : g_calls) n += c.load(); return n; }
+
+// ---- a stand-in for the game's build menu: the tab vector and its functions ----------
+typedef std::vector<std::array<BYTE, 0x30>> FakeItems;
+static std::vector<std::array<BYTE, 0xB0>> g_fakeTabs;
+static std::map<std::string, BYTE*> g_fakeTools;
+static bool g_fakeColorAligned = true;
+
+static size_t FakeTabCount(void*) { return g_fakeTabs.size(); }
+static BYTE*  FakeTabAt(void*, size_t i) { return g_fakeTabs.at(i).data(); }
+static void*  FakeCtor(void* rec) { return rec; }
+static void   FakeDtor(void*) {}
+static void   FakeTabPush(void*, void* rec)
+{
+    std::array<BYTE, 0xB0> a;
+    memcpy(a.data(), rec, a.size());
+    g_fakeTabs.push_back(a);
+}
+static void FakeTabInit(BYTE* tab, const char* name, int textId, int group, const float* color)
+{
+    if ((ULONG_PTR)color % 16) g_fakeColorAligned = false;   // the game reads it with movaps
+    strcpy((char*)tab, name);
+    *(int*)(tab + 0x48) = textId;
+    *(int*)(tab + kTabGroup) = group;
+    memcpy(tab + kTabColor, color, 16);
+}
+static size_t FakeItemCount(void* vec) { FakeItems* p = *(FakeItems**)vec; return p ? p->size() : 0; }
+static BYTE*  FakeItemAt(void* vec, size_t i) { return (*(FakeItems**)vec)->at(i).data(); }
+static void   FakeItemPush(void* vec, void* rec)
+{
+    FakeItems*& p = *(FakeItems**)vec;
+    if (!p) p = new FakeItems;
+    std::array<BYTE, 0x30> a;
+    memcpy(a.data(), rec, a.size());
+    p->push_back(a);
+}
+static void FakeItemInit(BYTE* item, void* tool, int textId, int)
+{
+    *(void**)item = tool;
+    *(int*)(item + 0x20) = textId;
+}
+static void* FakeFindTool(void*, const char* name)
+{
+    auto it = g_fakeTools.find(name);
+    return it == g_fakeTools.end() ? NULL : it->second;
+}
+static void FakeIntPush(void* vec, const int* value)
+{
+    std::vector<int>*& p = *(std::vector<int>**)vec;
+    if (!p) p = new std::vector<int>;
+    p->push_back(*value);
+}
+static void FakeMenu(void)
+{
+    static const int groups[26] = { 0,0,0,0,0,0, 1,1,1,1, 2,2,2,2, 3,3,3,3, 4,4,4,4,4,4, 5,5 };
+    g_fakeTabs.clear();
+    for (int i = 0; i < 26; ++i)
+    {
+        std::array<BYTE, 0xB0> a = {};
+        sprintf((char*)a.data(), "t%d", i);
+        *(int*)(a.data() + kTabGroup) = groups[i];
+        float color[4] = { 1.0f, 1.0f, 1.0f, 0.5f + i };
+        memcpy(a.data() + kTabColor, color, 16);
+        g_fakeTabs.push_back(a);
+    }
+    g_tabCount = FakeTabCount;  g_tabAt = FakeTabAt;  g_tabCtor = FakeCtor;  g_tabDtor = FakeDtor;
+    g_tabPush = FakeTabPush;    g_tabInit = FakeTabInit;
+    g_itemCount = FakeItemCount; g_itemAt = FakeItemAt; g_itemCtor = FakeCtor; g_itemDtor = FakeDtor;
+    g_itemPush = FakeItemPush;  g_itemInit = FakeItemInit;
+    g_findTool = FakeFindTool;  g_intPush = FakeIntPush;
+}
 
 int main(int argc, char** argv)
 {
@@ -1049,12 +1121,83 @@ int main(int argc, char** argv)
         CHECK(citizenHome != NULL);
         if (citizenHome)
             CHECK((unsigned long long)(citizenHome - g_exeBase) == 0x83A6D0);
+        BYTE* menu = ScanUnique(kSigMenuBuilder, (int)(sizeof(kSigMenuBuilder) / sizeof(kSigMenuBuilder[0])));
+        CHECK(menu != NULL);
+        if (menu)
+        {
+            CHECK((unsigned long long)(menu - g_exeBase) == 0x51E30);
+            CHECK(kStolenMenu == 18 && menu[18] == 0xB8);      // the next instruction, mov eax
+            CHECK(ResolveMenuTab(menu));
+            CHECK((BYTE*)g_tabVec    - g_exeBase == 0x9E17D8);
+            CHECK((BYTE*)g_toolGame  - g_exeBase == 0x9D4F10);
+            CHECK((BYTE*)g_tabCount  - g_exeBase == 0x08E390);
+            CHECK((BYTE*)g_tabAt     - g_exeBase == 0x08E380);
+            CHECK((BYTE*)g_tabCtor   - g_exeBase == 0x079430);
+            CHECK((BYTE*)g_tabDtor   - g_exeBase == 0x079470);
+            CHECK((BYTE*)g_tabPush   - g_exeBase == 0x08E3C0);
+            CHECK((BYTE*)g_tabInit   - g_exeBase == 0x051CA0);
+            CHECK((BYTE*)g_itemCount - g_exeBase == 0x08E470);
+            CHECK((BYTE*)g_itemAt    - g_exeBase == 0x08E460);
+            CHECK((BYTE*)g_itemCtor  - g_exeBase == 0x079500);
+            CHECK((BYTE*)g_itemDtor  - g_exeBase == 0x079520);
+            CHECK((BYTE*)g_itemPush  - g_exeBase == 0x08E500);
+            CHECK((BYTE*)g_itemInit  - g_exeBase == 0x051B80);
+            CHECK((BYTE*)g_findTool  - g_exeBase == 0x03AAA0);
+            CHECK((BYTE*)g_intPush   - g_exeBase == 0x01DF90);
+        }
         CHECK(ResolveRouteFunctions());
         CHECK((BYTE*)g_clearRoute  - g_exeBase == 0x67CB30);
         CHECK((BYTE*)g_addStop     - g_exeBase == 0x67D5D0);
         CHECK((BYTE*)g_addResource - g_exeBase == 0x0B14E0);
         CHECK((BYTE*)g_startRoute  - g_exeBase == 0x6B8EB0);
         CHECK((BYTE*)g_abortRoute  - g_exeBase == 0x6B8C80);
+    }
+
+    // The build menu tab, against a stand-in menu of the game's shape: 26 tabs in six groups.
+    {
+        static BYTE service[0x60], sorting[0x60], other[0x60], notBuilding[0x60];
+        static int someType;
+        *(void**)(service + kToolType) = &someType;
+        *(void**)(sorting + kToolType) = &someType;
+        *(void**)(other + kToolType)   = &someType;
+        strcpy(g_tabItemId, "ITEM");
+        strcpy(g_tabExtra, "999/Other, 999/Missing");
+
+        FakeMenu();
+        g_fakeTools.clear();
+        AddMailTab();
+        CHECK(g_fakeTabs.size() == 26);                        // no buildings, no tab
+
+        g_fakeTools["ITEM/MailService"]   = service;
+        g_fakeTools["ITEM/SortingOffice"] = sorting;
+        g_fakeTools["ITEM/MailWarehouse"] = notBuilding;       // a tool without a building type
+        g_fakeTools["999/Other"]          = other;
+        AddMailTab();
+        CHECK(g_fakeTabs.size() == 27);
+        if (g_fakeTabs.size() == 27)
+        {
+            BYTE* tab = g_fakeTabs[24].data();
+            CHECK(strcmp((char*)tab, "mail") == 0);            // after the industry tabs
+            CHECK(strcmp((char*)g_fakeTabs[23].data(), "t23") == 0);
+            CHECK(strcmp((char*)g_fakeTabs[25].data(), "t24") == 0);
+            CHECK(strcmp((char*)g_fakeTabs[26].data(), "t25") == 0);   // the hidden last tab stays last
+            CHECK(*(int*)(tab + 0x48) == kTabTextBase && *(int*)(tab + kTabGroup) == 4);
+            CHECK(*(float*)(tab + kTabColor + 12) == 25.5f && g_fakeColorAligned);
+            FakeItems* items = *(FakeItems**)(tab + kTabItems);
+            CHECK(items && items->size() == 3);
+            if (items && items->size() == 3)
+            {
+                CHECK(*(void**)(*items)[0].data() == service && *(void**)(*items)[1].data() == sorting &&
+                      *(void**)(*items)[2].data() == other);
+                CHECK(*(int*)((*items)[0].data() + 0x20) == 0x947);
+            }
+            std::vector<int>* heads = *(std::vector<int>**)(tab + kTabHeadings);
+            std::vector<int>* ends  = *(std::vector<int>**)(tab + kTabEnds);
+            CHECK(heads && *heads == std::vector<int>({ kTabTextBase + 1, kTabTextBase + 2, kTabTextBase + 3 }));
+            CHECK(ends && *ends == std::vector<int>({ 1, 2, 3 }));
+        }
+        AddMailTab();
+        CHECK(g_fakeTabs.size() == 27);                        // not twice
     }
 
     // 8. The load contract: zero only when the hook is in, non-zero (unload me)

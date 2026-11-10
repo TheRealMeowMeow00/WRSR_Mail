@@ -8,10 +8,11 @@ Buildings make raw mail beside their waste. Mail trucks owned by a mail service 
 and bring it to a warehouse or straight to the main post office, a factory that processes
 it. Trucks bring the processed mail to the homes. Mail in a house lifts its residents'
 happiness, a covered house without mail lowers it. Raw mail can be bought abroad, processed
-and sold back for a modest profit.
+and sold back for a modest profit. The mod's buildings have their own "Mail" tab in the build menu.
 
 See `docs/balance.md` for how the numbers work (in Russian), `docs/modding.md` to make content for
-it, `docs/waste-system.md` and `docs/vehicle-classes.md` for what was learned about the game.
+it, `docs/waste-system.md`, `docs/vehicle-classes.md` and `docs/build-menu.md` for what was learned
+about the game.
 
 ## Building
 
@@ -37,5 +38,7 @@ GPL v3, use your own name and say what changed.
 - The way resources are added comes from `plugins/resources/resources.cpp` in
   MaxLegend/TesmioLoader, GPL-3.0.
 - `src/tesmio_*.h` are TesmioLoader's plugin API headers, unchanged.
+- That a mod can add a tab to the build menu was learned from the Frontline mod by SAYONE (Steam
+  Workshop 3835680832). None of its code is used; see `docs/build-menu.md`.
 - All models come from the base game and the Early Start DLC, no other mods. Modders who
   want to add buildings or vehicles: see `docs/modding.md`.
