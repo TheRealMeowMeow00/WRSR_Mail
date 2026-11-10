@@ -14,7 +14,7 @@ The question: can a mod add a tab of its own to the bottom build menu, next to "
 
 **Short answer: yes. The menu is a plain list that one function fills at start-up, and a tab added
 to that list with the game's own functions is drawn, clicked and navigated like any other
-[code]. The Frontline mod does it, and WRSR Mail does it in the build after 1.0.0 [game].**
+[code]. The Frontline mod does it, and WRSR Mail does it since 1.1.0 [game].**
 
 ## Credit
 

@@ -14,7 +14,7 @@
 
 #include "../../src/tesmio_plugin.h"
 
-#define MAIL_VERSION "1.0.0"
+#define MAIL_VERSION "1.1.0"
 
 // The prologue up to the null check of the building argument, with the rel32 of
 // that branch wildcarded.

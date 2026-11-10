@@ -1,6 +1,6 @@
 # WRSR Mail
 
-A postal service for Workers & Resources: Soviet Republic, by TheRealMeowMeow00. Version 1.0.0.
+A postal service for Workers & Resources: Soviet Republic, by TheRealMeowMeow00. Version 1.1.0.
 GPL-3.0-only, see `LICENSE`. Needs a plugin loader and a new map. The mod is about the mechanics:
 its buildings are placeholders on models from the game and the Early Start DLC, all tagged `[MAIL]`.
 
