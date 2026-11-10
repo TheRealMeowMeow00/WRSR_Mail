@@ -1,89 +1,61 @@
 [h1]WRSR Mail: a postal service for your republic[/h1]
-Buildings produce mail along with their waste. Mail trucks collect it, post offices process it, and trucks bring it to the homes. Mail in a house makes its residents happier. A covered house without mail makes them unhappy.
+Buildings produce mail along with their waste. Trucks collect it, post offices process it, trucks bring it to the homes. Residents with mail are happier, a covered house without it is not.
 
-This mod is about the mechanics. Its buildings are placeholders on models from the base game and the Early Start DLC. Everything is tagged [b][MAIL][/b]: search for that word in the menu. Modders are welcome to add real post offices, see the modding guide in the repository.
-
-[h2]What it adds[/h2]
-[list]
-[*] Two resources, unprocessed and processed mail.
-[*] A mail service that buys any covered truck and sends it on its own.
-[*] Mail warehouses and post offices of several sizes, manual and automated, all clean production.
-[*] Mail use that grows over the years, from letters in 1920 to parcels in 2020.
-[*] Trade: buy unprocessed mail abroad, process it, sell it back. Works by road, rail, air and sea. Prices follow the wage, so they keep up with inflation.
-[*] Trucks reach houses with only a pedestrian entrance, as garbage trucks do.
-[/list]
+The mod is about mechanics: its buildings are placeholders on base game and Early Start models, all named [b][MAIL][/b]. Modders are welcome to add real ones, see the guide in the repository.
 
 [h2]How to play[/h2]
 [olist]
-[*] Enable WRSR Mail in RepublicModLoader and start a [b]new map with waste management on[/b]. Mail is made together with waste: with waste off, no mail appears and nobody minds.
+[*] Enable WRSR Mail in RepublicModLoader. Start a [b]new map with waste management on[/b]: mail comes with waste.
 [*] Search [b][MAIL][/b] in the Workshop buildings menu.
-[*] Build a [b]Mail service[/b] near the houses. Like a technical service, it serves the buildings in its range and needs fuel.
-[*] Build a [b]Main post office[/b]: it needs workers and electricity. Sizes go from 40 to 320 workers, plus automated sorting centres. Early versions exist for early starts.
-[*] Open the mail service window. In the utilities section it has two rows: [b]Raw mail[/b], where collected mail goes, and [b]Processed mail[/b], where trucks take mail for the homes. Set both to the post office.
-[*] Buy covered trucks in the service window. Any covered road truck works, one truck does both jobs in turns.
+[*] Build a [b]Mail service[/b] near the houses. Like a technical service, it serves its range and needs fuel.
+[*] Build a [b]Main post office[/b], with workers and electricity. Sizes from 40 to 320 workers, automated centres, early versions.
+[*] In the service window, set both rows, [b]Raw mail[/b] and [b]Processed mail[/b], to the post office.
+[*] Buy covered trucks there. Any covered road truck works.
 [/olist]
-Trucks then collect mail from buildings, the post office processes it, and trucks bring it to the homes, up to 12 stops a trip. A truck that stands still for 90 s of unpaused play is sent back to its base.
+Trucks then collect, the post office processes, trucks deliver, up to 12 stops a trip.
 
-[b]Warehouse, optional.[/b] A Mail warehouse holds much more and loads 5 times faster. Set the service rows to it and move mail between it and the post office with your own line. Its stock slowly ages, a post office's does not.
+[b]Warehouse, optional:[/b] holds much more, loads 5 times faster. Point the service rows to it and run your own line to the post office. Its stock slowly ages.
+[b]Trade:[/b] buy raw mail at customs, process it, sell it back by road, rail, air or sea. Prices follow the wage.
 
-[b]Trade.[/b] Buy raw mail at a customs house, process it, sell the processed mail back. Road, rail, air and sea all work. The margin is about the wages of the processing.
-
-[b]Problems?[/b] Lines of this mod in rml/logs/rml-runtime.log in the RepublicModLoader folder start with the word mail. Post them with your report.
-
-[h2]Please read before installing[/h2]
+[h2]Before installing[/h2]
 [list]
-[*] [b]Start a new map.[/b] The resource count is part of the save: older saves do not load with this mod, and saves made with it do not load without it.
-[*] Needs a plugin loader. Tested under RepublicModLoader. Made for TesmioLoader API 4 as well, not tested there.
-[*] Targets [b]SOVIET64.exe 1.1.1.9[/b]. Every patch site is checked by its bytes first, and what does not match is skipped and written to the log. After a game update, wait for a new version of the mod: without its resources, the mail buildings can stop the game from loading.
-[*] Needs two free slots in the game's resource list. If other mods took them, the log says so, and the same applies: unsubscribe until that is sorted out.
+[*] [b]New map only.[/b] Saves from before do not load with the mod, saves with it do not load without it.
+[*] Needs RepublicModLoader (tested). TesmioLoader API 4 should work, untested.
+[*] For [b]SOVIET64.exe 1.1.1.9[/b]. After a game update, wait for a new version.
+[*] Problems? Send the lines starting with mail from rml/logs/rml-runtime.log.
 [/list]
 
-[h2]Credits and license[/h2]
-By TheRealMeowMeow00. GPL-3.0-only. Source: https://github.com/TheRealMeowMeow00/WRSR_Mail
-The way resources are added comes from TesmioLoader's resources plugin by MaxLegend, GPL-3.0.
+By TheRealMeowMeow00, GPL-3.0-only. Source: https://github.com/TheRealMeowMeow00/WRSR_Mail
+Resources are added the way of TesmioLoader's resources plugin by MaxLegend, GPL-3.0.
 
 [hr][/hr]
 
 [h1]WRSR Mail: почта для вашей республики[/h1]
-Здания производят почту вместе с мусором. Грузовики её собирают, почтамты обрабатывают, а затем грузовики развозят её по домам. Почта в доме поднимает настроение жильцов. Дом в зоне службы без почты его снижает.
+Здания производят почту вместе с мусором. Грузовики её собирают, почтамты обрабатывают, грузовики развозят по домам. Жители с почтой довольнее, дом в зоне службы без почты нет.
 
-Этот мод про механику. Его здания это заглушки на моделях игры и DLC Early Start. У всего есть метка [b][MAIL][/b]: найдите это слово в меню. Моддеры могут добавить настоящие почтамты, руководство есть в репозитории.
-
-[h2]Что добавляет[/h2]
-[list]
-[*] Два ресурса: необработанная и обработанная почта.
-[*] Почтовая служба: покупает любые крытые грузовики и сама их отправляет.
-[*] Склады и почтамты разных размеров, ручные и автоматические, без загрязнения.
-[*] Расход почты растёт с годами: от писем в 1920 до посылок в 2020.
-[*] Торговля: покупайте необработанную почту за границей, обрабатывайте и продавайте обратно. Работает по дороге, железной дороге, воздуху и морю. Цены идут за зарплатой, поэтому успевают за инфляцией.
-[*] Грузовики подъезжают к домам только с пешеходным подходом, как мусоровозы.
-[/list]
+Мод про механику: здания это заглушки на моделях игры и Early Start, у всех метка [b][MAIL][/b]. Моддеры могут добавить настоящие, руководство в репозитории.
 
 [h2]Как играть[/h2]
 [olist]
-[*] Включите WRSR Mail в RepublicModLoader и начните [b]новую карту с включённым мусором[/b]. Почта появляется вместе с мусором: без него почты нет, и жители не огорчаются.
+[*] Включите WRSR Mail в RepublicModLoader. Начните [b]новую карту с включённым мусором[/b]: почта идёт вместе с ним.
 [*] Найдите здания поиском [b][MAIL][/b] в меню зданий мастерской.
-[*] Постройте почтовую службу ([b]Mail service[/b]) рядом с домами. Как техслужба, она обслуживает здания в своём радиусе и нуждается в топливе.
-[*] Постройте почтамт ([b]Main post office[/b]): ему нужны рабочие и электричество. Размеры от 40 до 320 рабочих, есть и автоматические сортировочные центры. Для раннего старта есть ранние версии.
-[*] Откройте окно почтовой службы. В разделе коммунального хозяйства две строки: [b]сырая почта[/b], куда везут собранное, и [b]готовая почта[/b], откуда берут почту для домов. Укажите в обеих почтамт.
-[*] Купите крытые грузовики в окне службы. Подходит любой крытый дорожный грузовик, одна машина по очереди делает обе работы.
+[*] Постройте почтовую службу ([b]Mail service[/b]) у домов. Как техслужба, она обслуживает свой радиус и берёт топливо.
+[*] Постройте почтамт ([b]Main post office[/b]): нужны рабочие и электричество. От 40 до 320 рабочих, есть автоматические центры и ранние версии.
+[*] В окне службы укажите почтамт в обеих строках: [b]сырая почта[/b] и [b]готовая почта[/b].
+[*] Купите там крытые грузовики. Подойдёт любой крытый дорожный.
 [/olist]
-Дальше грузовики собирают почту по зданиям, почтамт её обрабатывает, а грузовики развозят по домам, до 12 остановок за рейс. Машину, которая простояла 90 секунд без паузы, мод отправляет на базу.
+Дальше грузовики собирают почту, почтамт её обрабатывает, грузовики развозят, до 12 остановок за рейс.
 
-[b]Склад, по желанию.[/b] Почтовый склад ([b]Mail warehouse[/b]) вмещает гораздо больше и грузит в 5 раз быстрее. Укажите его в строках службы и возите почту между ним и почтамтом своей линией. Запас на складе понемногу стареет, на почтамте нет.
+[b]Склад, по желанию:[/b] вмещает гораздо больше и грузит в 5 раз быстрее. Укажите его в строках службы и возите почту до почтамта своей линией. Запас на складе понемногу стареет.
+[b]Торговля:[/b] покупайте сырую почту на таможне, обрабатывайте и продавайте обратно по дороге, железной дороге, воздуху или морю. Цены идут за зарплатой.
 
-[b]Торговля.[/b] Покупайте сырую почту на таможне, обрабатывайте и продавайте готовую обратно. Работают дорога, железная дорога, воздух и море. Наценка примерно равна зарплате за обработку.
-
-[b]Что-то не так?[/b] Строки мода в rml/logs/rml-runtime.log в папке RepublicModLoader начинаются со слова mail. Приложите их к сообщению.
-
-[h2]Прочитайте перед установкой[/h2]
+[h2]Перед установкой[/h2]
 [list]
-[*] [b]Начните новую карту.[/b] Число ресурсов записано в сохранении: старые сохранения с модом не загрузятся, а сохранения с модом не загрузятся без него.
-[*] Нужен загрузчик плагинов. Проверено под RepublicModLoader. Сделано и для TesmioLoader API 4, там не проверялось.
-[*] Для [b]SOVIET64.exe 1.1.1.9[/b]. Каждое место правки сначала сверяется по байтам, а что не совпало, пропускается и пишется в журнал. После обновления игры дождитесь новой версии мода: без его ресурсов почтовые здания могут помешать загрузке игры.
-[*] Нужны два свободных места в списке ресурсов игры. Если их заняли другие моды, журнал об этом скажет, и правило то же: отпишитесь, пока это не решено.
+[*] [b]Только новая карта.[/b] Старые сохранения с модом не загрузятся, а сохранения с ним не загрузятся без него.
+[*] Нужен RepublicModLoader (проверено). TesmioLoader API 4 должен работать, не проверялось.
+[*] Для [b]SOVIET64.exe 1.1.1.9[/b]. После обновления игры дождитесь новой версии мода.
+[*] Проблемы? Пришлите строки, начинающиеся с mail, из rml/logs/rml-runtime.log.
 [/list]
 
-[h2]Авторы и лицензия[/h2]
-Автор TheRealMeowMeow00. GPL-3.0-only. Исходный код: https://github.com/TheRealMeowMeow00/WRSR_Mail
-Способ добавления ресурсов взят из плагина resources в TesmioLoader, автор MaxLegend, GPL-3.0.
+Автор TheRealMeowMeow00, GPL-3.0-only. Исходный код: https://github.com/TheRealMeowMeow00/WRSR_Mail
+Ресурсы добавляются способом плагина resources из TesmioLoader, автор MaxLegend, GPL-3.0.

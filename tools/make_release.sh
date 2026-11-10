@@ -26,6 +26,12 @@ fail() { echo "FAIL: $1"; BAD=1; }
 grep -q "^\$ITEM_ID $ID" "$OUT/workshopconfig.ini" || fail "item id not written"
 grep -q '^\$ITEM_NAME "WRSR Mail"$' "$OUT/workshopconfig.ini" || fail "item name"
 grep -q '^resources = 1' "$OUT/plugins/mail.ini" || fail "resources must be 1 in mail.ini"
+# The game reads $ITEM_DESC into a stack buffer of about 9000 bytes and dies with 0xC0000409
+# when it is longer (seen 2026-11-08 at 10082 bytes, opening the items in development).
+# Cyrillic takes two bytes a letter in UTF-8, so count bytes, not characters.
+DESC_BYTES=$(python -I -c "import sys;s=open(sys.argv[1],encoding='utf-8').read();i=s.index('\$ITEM_DESC \"')+12;print(len(s[i:s.index(chr(34),i)].encode()))" "$OUT/workshopconfig.ini")
+[ "$DESC_BYTES" -le 8000 ] || fail "the description is $DESC_BYTES bytes, keep it under 8000"
+echo "description: $DESC_BYTES bytes"
 [ -f "$OUT/previewimage.png" ] || fail "no previewimage.png in the project folder"
 [ -f "$OUT/plugins/mail.dll" ] || fail "no plugin"
 
